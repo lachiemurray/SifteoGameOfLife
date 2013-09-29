@@ -134,16 +134,10 @@ namespace SifteoCubeOfLife {
 
             // Wrap top and bottom rows
             for (int x=1; x<PIXEL_COUNT-1; x++) {
-                // TODO: transform mCurrentState based on orientation
-                //bool shouldFlip = ((Math.Abs(Cube.Side.TOP - cubeTop.Second) == 1) && (Math.Abs(Cube.Side.BOTTOM - cubeBottom.Second) == 1)) ||
-                //                  ((Math.Abs(Cube.Side.TOP - cubeTop.Second) == 2) && (Math.Abs(Cube.Side.BOTTOM - cubeBottom.Second) == 2));
-                bool shouldFlipTop = (Math.Abs(Cube.Side.TOP - cubeTop.Second) == 1) || (Math.Abs(Cube.Side.TOP - cubeTop.Second) == 2);
-                bool shouldFlipBottom = (Math.Abs(Cube.Side.BOTTOM - cubeBottom.Second) == 1) || (Math.Abs(Cube.Side.BOTTOM - cubeBottom.Second) == 2);
-                mPreviousState[x, 0] = GetCellFromRow(cubeTop.First, cubeTop.Second, x, ShouldFlip(Cube.Side.TOP, cubeTop.Second));
-                mPreviousState[x, PIXEL_COUNT - 1] = GetCellFromRow(cubeBottom.First, cubeBottom.Second, x, ShouldFlip(Cube.Side.BOTTOM, cubeBottom.Second));
-
-                //mPreviousState[x, 0] = cubeTop.First.mCurrentState[x, PIXEL_COUNT-2];
-                //mPreviousState[x, PIXEL_COUNT-1] = cubeBottom.First.mCurrentState[x, 1];
+                mPreviousState[x, 0] = GetCellFromRow(cubeTop.First, cubeTop.Second, x, 
+                    ShouldFlip(Cube.Side.TOP, cubeTop.Second));
+                mPreviousState[x, PIXEL_COUNT - 1] = GetCellFromRow(cubeBottom.First, cubeBottom.Second, x, 
+                    ShouldFlip(Cube.Side.BOTTOM, cubeBottom.Second));
             }
 
             Pair<CubeWrapper, Cube.Side> cubeLeft = GetNeighbourCube(Cube.Side.LEFT);
@@ -151,18 +145,13 @@ namespace SifteoCubeOfLife {
 
             // Wrap left and right columns
             for (int y = 1; y < PIXEL_COUNT - 1; y++) {
-                // TODO: transform mCurrentState based on orientation
-                //bool shouldFlip = ((Math.Abs(Cube.Side.LEFT - cubeLeft.Second) == 1) && (Math.Abs(Cube.Side.RIGHT - cubeRight.Second) == 1)) ||
-                //                  ((Math.Abs(Cube.Side.LEFT - cubeLeft.Second) == 2) && (Math.Abs(Cube.Side.RIGHT - cubeRight.Second) == 2));
-                bool shouldFlipLeft = (Math.Abs(Cube.Side.LEFT - cubeLeft.Second) == 1) || (Math.Abs(Cube.Side.LEFT - cubeLeft.Second) == 2);
-                bool shouldFlipRight = (Math.Abs(Cube.Side.RIGHT - cubeRight.Second) == 1) || (Math.Abs(Cube.Side.RIGHT - cubeRight.Second) == 2);
-                mPreviousState[0, y] = GetCellFromRow(cubeLeft.First, cubeLeft.Second, y, ShouldFlip(Cube.Side.LEFT, cubeLeft.Second));
-                mPreviousState[PIXEL_COUNT - 1, y] = GetCellFromRow(cubeRight.First, cubeRight.Second, y, ShouldFlip(Cube.Side.RIGHT, cubeRight.Second));
-            
-                //mPreviousState[0, y] = cubeLeft.First.mCurrentState[PIXEL_COUNT - 2, y];
-                //mPreviousState[PIXEL_COUNT - 1, y] = cubeRight.First.mCurrentState[1, y];
+                mPreviousState[0, y] = GetCellFromRow(cubeLeft.First, cubeLeft.Second, y, 
+                    ShouldFlip(Cube.Side.LEFT, cubeLeft.Second));
+                mPreviousState[PIXEL_COUNT - 1, y] = GetCellFromRow(cubeRight.First, cubeRight.Second, y, 
+                    ShouldFlip(Cube.Side.RIGHT, cubeRight.Second));
             }
 
+            //TODO: wrap diagonal corners
             // Wrap top left and bottom right
             //mPreviousState[0, 0] = mCurrentState[PIXEL_COUNT - 2, PIXEL_COUNT - 2];
             //mPreviousState[PIXEL_COUNT - 1, PIXEL_COUNT - 1] = mCurrentState[1, 1];
@@ -173,9 +162,6 @@ namespace SifteoCubeOfLife {
         }
 
         private int GetCellFromRow(CubeWrapper cube, Cube.Side side, int i, bool shouldFlip) {
-
-            //if(cube.mCube != mCube)
-            //Log.Debug("Side2 - Side1 " + side2 + " - " + side1 + " = " + (side2 - side1));
 
             i = !shouldFlip ? PIXEL_COUNT - i - 1: i;
 
