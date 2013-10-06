@@ -71,8 +71,8 @@ namespace SifteoCubeOfLife {
 
         public void Glider() {
 
-            int i = mRandom.Next(1,PIXEL_COUNT-5);
-            int j = mRandom.Next(1,PIXEL_COUNT-5);
+			int i = mRandom.Next(1,PIXEL_COUNT-5);
+			int j = mRandom.Next(1,PIXEL_COUNT-5);
 
             for (int x = 0; x < GLIDER_SIZE; x++) {
                 mPreviousState[i + GLIDER[x, 0], j + GLIDER[x, 1]] = 0;
@@ -151,15 +151,56 @@ namespace SifteoCubeOfLife {
                     ShouldFlip(Cube.Side.RIGHT, cubeRight.Second));
             }
 
-            //TODO: wrap diagonal corners
-            // Wrap top left and bottom right
-            //mPreviousState[0, 0] = mCurrentState[PIXEL_COUNT - 2, PIXEL_COUNT - 2];
-            //mPreviousState[PIXEL_COUNT - 1, PIXEL_COUNT - 1] = mCurrentState[1, 1];
+			Triple<CubeWrapper, Cube.Side, Cube.Side> cubeTopLeft = GetDiagonalNeighbourCube (Cube.Side.LEFT, Cube.Side.TOP);
+			Triple<CubeWrapper, Cube.Side, Cube.Side> cubebottomRight = GetDiagonalNeighbourCube (Cube.Side.RIGHT, Cube.Side.BOTTOM);
 
-            // Wrap top right and bottom left
-            //mPreviousState[PIXEL_COUNT - 1, 0] = mCurrentState[1, PIXEL_COUNT - 2];
-            //mPreviousState[0, PIXEL_COUNT - 1] = mCurrentState[PIXEL_COUNT - 2, 1];
+			if (cubeTopLeft.First != null) {
+				if (cubeTopLeft.First.mCube != mCube)
+					Log.Debug ("TopLeft:" + mCube.UniqueId + " " + cubeTopLeft.First.mCube.UniqueId + " " + cubeTopLeft.Second + " " + cubeTopLeft.Third);
+				mPreviousState [0, 0] = GetCellFromDiagonal (cubeTopLeft.First, cubeTopLeft.Second, cubeTopLeft.Third);
+			}
+
+			if (cubebottomRight.First != null) {
+				if (cubebottomRight.First.mCube != mCube)
+					Log.Debug ("bottomRight:" + mCube.UniqueId + " " + cubebottomRight.First.mCube.UniqueId + " " + cubebottomRight.Second + " " + cubebottomRight.Third);
+				mPreviousState[PIXEL_COUNT - 1, PIXEL_COUNT - 1] =  GetCellFromDiagonal (cubebottomRight.First, cubebottomRight.Second, cubebottomRight.Third);
+			}
+
+
+			Triple<CubeWrapper, Cube.Side, Cube.Side> cubeTopRight = GetDiagonalNeighbourCube (Cube.Side.RIGHT, Cube.Side.TOP);
+			Triple<CubeWrapper, Cube.Side, Cube.Side> cubeBottomLeft = GetDiagonalNeighbourCube (Cube.Side.LEFT, Cube.Side.BOTTOM);
+
+
+			if (cubeTopRight.First != null) {
+				if (cubeTopRight.First.mCube != mCube)
+					Log.Debug ("TopRight:" + mCube.UniqueId + " " + cubeTopRight.First.mCube.UniqueId + " " + cubeTopRight.Second + " " + cubeTopRight.Third);
+				mPreviousState [PIXEL_COUNT - 1, 0] = GetCellFromDiagonal (cubeTopRight.First, cubeTopRight.Second, cubeTopRight.Third);
+			}
+
+			if (cubeBottomLeft.First != null) {
+				if (cubeBottomLeft.First.mCube != mCube)
+					Log.Debug ("bottomLeft:" + mCube.UniqueId + " " + cubeBottomLeft.First.mCube.UniqueId + " " + cubeBottomLeft.Second + " " + cubeBottomLeft.Third);
+				mPreviousState[0, PIXEL_COUNT - 1] =  GetCellFromDiagonal (cubeBottomLeft.First, cubeBottomLeft.Second, cubeBottomLeft.Third);
+			}
         }
+
+		private int GetCellFromDiagonal(CubeWrapper cube, Cube.Side side1, Cube.Side side2) {
+
+			if (((side1 == Cube.Side.TOP) && (side2 == Cube.Side.LEFT)) || 
+				((side1 == Cube.Side.LEFT) && (side2 == Cube.Side.TOP))) {
+				return cube.mCurrentState [1, 1];
+			} else if ((side1 == Cube.Side.BOTTOM && side2 == Cube.Side.RIGHT) || 
+					   (side1 == Cube.Side.RIGHT && side2 == Cube.Side.BOTTOM)) {
+				return cube.mCurrentState [PIXEL_COUNT - 2, PIXEL_COUNT - 2];
+			} else if (((side1 == Cube.Side.TOP) && (side2 == Cube.Side.RIGHT)) || 
+					   ((side1 == Cube.Side.RIGHT) && (side2 == Cube.Side.TOP))) {
+				return cube.mCurrentState [PIXEL_COUNT - 2, 1];
+			} else if ((side1 == Cube.Side.BOTTOM && side2 == Cube.Side.LEFT) || 
+					   (side1 == Cube.Side.LEFT && side2 == Cube.Side.BOTTOM)) {
+				return cube.mCurrentState [1, PIXEL_COUNT - 2];
+			}
+			return 255;
+		}
 
         private int GetCellFromRow(CubeWrapper cube, Cube.Side side, int i, bool shouldFlip) {
 
@@ -178,6 +219,32 @@ namespace SifteoCubeOfLife {
             return 0;
 
         }
+
+		private Triple<CubeWrapper,Cube.Side,Cube.Side> GetDiagonalNeighbourCube(Cube.Side side1, Cube.Side side2) {
+
+			Cube cube = NeighbourOnDiagonal(mCube, side1, side2);
+
+			if (cube == null) {
+				cube = mCube;
+				side1 = Sifteo.Util.CubeHelper.InvertSide (side1);
+				side2 = Sifteo.Util.CubeHelper.InvertSide (side2);
+				Cube next = NeighbourOnDiagonal (cube, side1, side2);
+				while (next != null) {
+					side1 = Sifteo.Util.CubeHelper.RotateFromOriginToNeighbor (side1, cube, next);
+					side2 = Sifteo.Util.CubeHelper.RotateFromOriginToNeighbor (side2, cube, next);
+					cube = next;
+					next = NeighbourOnDiagonal (cube, side1, side2);
+				}
+			} else {
+			
+				side1 = Sifteo.Util.CubeHelper.InvertSide (
+					Sifteo.Util.CubeHelper.RotateFromOriginToNeighbor (side1, mCube, cube));
+				side2 = Sifteo.Util.CubeHelper.InvertSide (
+					Sifteo.Util.CubeHelper.RotateFromOriginToNeighbor (side2, mCube, cube));
+			}
+
+			return new Triple<CubeWrapper,Cube.Side,Cube.Side> ((CubeWrapper)cube.userData, side1, side2);
+		}
 
 
         // Get neighbour on provided side. If there is no immediate neighbour then  
@@ -239,6 +306,31 @@ namespace SifteoCubeOfLife {
             mCube.FillRect(new Color(live), (x-1) * PIXEL_WIDTH, (y-1) * PIXEL_WIDTH, PIXEL_WIDTH, PIXEL_WIDTH);
         }
 
+		private static Cube NeighbourOnDiagonal(Cube cube, Cube.Side side1, Cube.Side side2) {
+			Cube neighbour = NeighbourOnSide(cube, side1);
+
+			if (neighbour != null && NeighbourOnSide (neighbour, side2) != null) {
+				return NeighbourOnSide (neighbour, side2);
+			}
+
+			neighbour = NeighbourOnSide(cube, side2);
+			if (neighbour != null && NeighbourOnSide (neighbour, side1) != null) {
+				return NeighbourOnSide (neighbour, side1);
+			}
+
+			return null;
+
+			//if( (NeighbourOnSide(cube, side1) != null) && 
+		//		((neighbour = NeighbourOnSide(NeighbourOnSide(cube, side1), side2)) != null)) {
+	//			return neighbour;
+	//		} else if( (NeighbourOnSide(cube, side2) != null) && 
+	//			((neighbour = NeighbourOnSide(NeighbourOnSide(cube, side2), side1)) != null)) {
+	//			return neighbour;
+	//		} else {
+	//			return null;
+	//		}
+		}
+
         private static Cube NeighbourOnSide(Cube cube, Cube.Side side) {
 
             switch (side) {
@@ -268,4 +360,19 @@ namespace SifteoCubeOfLife {
         public T First { get; set; }
         public U Second { get; set; }
     };
+
+	public class Triple<T, U, V> {
+		public Triple() {
+		}
+
+		public Triple(T first, U second, V third) {
+			this.First = first;
+			this.Second = second;
+			this.Third = third;
+		}
+
+		public T First { get; set; }
+		public U Second { get; set; }
+		public V Third { get; set; }
+	};
 }
